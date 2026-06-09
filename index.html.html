@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제주특별자치도 인구 통계 대시보드</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN (차트 렌더링용) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Montserrat:wght@600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 overflow-x-hidden">
+
+    <!-- 1. 네비게이션 바 -->
+    <nav class="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-900">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- 한라산 모양 상징 SVG 로고 -->
+                <svg class="w-8 h-8 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 20L12 4l10 16H2z"/>
+                    <path d="M10 12l2-3 2 3h-4z"/>
+                    <path d="M12 4v16"/>
+                </svg>
+                <span class="font-montserrat text-lg font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">JEJU POP-INFO</span>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-8 text-sm font-medium tracking-wide text-slate-300">
+                <a href="#hero" class="hover:text-emerald-400 transition-all">홈</a>
+                <a href="#map-section" class="hover:text-emerald-400 transition-all">지도로 보는 인구</a>
+                <a href="#chart-section" class="hover:text-emerald-400 transition-all">연령별 통계</a>
+                <a href="#simulator" class="hover:text-emerald-400 transition-all">인구 시뮬레이터</a>
+                <a href="#quiz" class="hover:text-emerald-400 transition-all">인구 퀴즈</a>
+            </div>
+
+            <!-- 모바일 토글 버튼 -->
+            <button class="md:hidden text-slate-300 hover:text-emerald-400 focus:outline-none" onclick="toggleMobileMenu()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 모바일 드롭다운 메뉴 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-950 border-b border-slate-900 px-6 py-4 space-y-3">
+            <a href="#hero" class="block text-slate-300 hover:text-emerald-400 py-2" onclick="toggleMobileMenu()">홈</a>
+            <a href="#map-section" class="block text-slate-300 hover:text-emerald-400 py-2" onclick="toggleMobileMenu()">지도로 보는 인구</a>
+            <a href="#chart-section" class="block text-slate-300 hover:text-emerald-400 py-2" onclick="toggleMobileMenu()">연령별 통계</a>
+            <a href="#simulator" class="block text-slate-300 hover:text-emerald-400 py-2" onclick="toggleMobileMenu()">인구 시뮬레이터</a>
+            <a href="#quiz" class="block text-slate-300 hover:text-emerald-400 py-2" onclick="toggleMobileMenu()">인구 퀴즈</a>
+        </div>
+    </nav>
+
+    <!-- 2. 히어로 섹션 -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden bg-radial-gradient">
+        <!-- 은은한 격자무늬 배경 효과 -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
+
+        <div class="relative max-w-7xl mx-auto px-6 py-12 text-center z-10 flex flex-col items-center">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 text-xs font-semibold tracking-wider mb-8">
+                <span>🌴 청정 자연과 사람이 어우러진 섬, 제주도</span>
+            </div>
+
+            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none mb-6">
+                <span class="text-slate-400 block text-xl sm:text-2xl font-light tracking-widest mb-4">JEJU SPECIAL SELFGoverning PROVINCE</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-100 to-cyan-300">
+                    제주도 인구 데이터 허브
+                </span>
+            </h1>
+
+            <p class="max-w-3xl text-base sm:text-lg text-slate-400 leading-relaxed mb-10 font-light">
+                제주시와 서귀포시의 인구 통계를 현대적이고 투명하게 모니터링합니다.<br class="hidden sm:inline">
+                역동적인 통계 지표와 예측 알고리즘을 통해 글로벌 평화의 섬 제주의 내일을 바라보세요.
+            </p>
+
+            <!-- 실시간 요약 통계 카드 목록 -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl mt-4">
+                <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                    <span class="text-xs text-slate-500 font-bold block mb-1">제주특별자치도 총인구</span>
+                    <span class="text-2xl sm:text-3xl font-black text-emerald-400 font-montserrat">694,800 명</span>
+                    <span class="text-[11px] text-slate-400 block mt-1">(최근 등록 인구 기준)</span>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                    <span class="text-xs text-slate-500 font-bold block mb-1">제주시 인구비율</span>
+                    <span class="text-2xl sm:text-3xl font-black text-teal-400 font-montserrat">72.3 %</span>
+                    <span class="text-[11px] text-slate-400 block mt-1">(약 502,300 명)</span>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                    <span class="text-xs text-slate-500 font-bold block mb-1">서귀포시 인구비율</span>
+                    <span class="text-2xl sm:text-3xl font-black text-cyan-400 font-montserrat">27.7 %</span>
+                    <span class="text-[11px] text-slate-400 block mt-1">(약 192,500 명)</span>
+                </div>
+            </div>
+
+            <div class="mt-12 flex flex-col sm:flex-row gap-4">
+                <a href="#map-section" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transform hover:-translate-y-1 transition-all text-center">
+                    지도로 인구 탐색하기
+                </a>
+                <a href="#simulator" class="px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 font-semibold rounded-xl text-slate-300 hover:text-white transition-all text-center">
+                    미래 인구 예측해보기
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 지도로 보는 인구 섹션 -->
+    <section id="map-section" class="py-24 bg-slate-900/40 border-y border-slate-900">
+        <div class="max-w-7xl mx-auto px-6">
+            <!-- 섹션 타이틀 -->
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-xs font-semibold tracking-widest text-emerald-400 uppercase mb-2">INTERACTIVE MAP</h2>
+                <h3 class="text-3xl sm:text-5xl font-black text-slate-100">지도로 만나는 행정구역별 인구</h3>
+                <p class="text-slate-400 mt-3 text-sm sm:text-base">
+                    아래의 제주도 지도를 클릭하거나 터치하여 제주시와 서귀포시의 세부 인구 구조와 대표 행정동 정보를 살펴보세요.
+                </p>
+                <div class="h-1 w-12 bg-gradient-to-r from-emerald-500 to-teal-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <!-- 지도와 세부정보 카드 레이아웃 -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-6xl mx-auto items-stretch">
+                <!-- 왼쪽: 대화형 SVG 지도 -->
+                <div class="lg:col-span-3 bg-slate-950 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between min-h-[380px] relative">
+                    <span class="text-xs text-slate-500 uppercase tracking-widest block mb-4 font-mono">MAP VIEW (시 경계 구획선)</span>
+                    
+                    <!-- 제주도 윤곽 심플화 SVG 맵 -->
+                    <div class="flex-1 flex items-center justify-center p-4">
+                        <svg class="w-full max-w-[450px] h-auto drop-shadow-[0_10px_20px_rgba(16,185,129,0.1)]" viewBox="0 0 500 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 배경 바다 효과 레이더 원형 -->
+                            <circle cx="250" cy="125" r="110" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4" />
+                            <circle cx="250" cy="125" r="70" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4" />
+                            
+                            <!-- 제주시 영역 (북쪽) -->
+                            <path id="map-jeju" d="M40 110 C 60 70, 100 50, 160 40 C 220 30, 280 30, 360 50 C 410 60, 450 85, 460 110 C 440 115, 410 115, 380 112 C 320 112, 280 120, 250 125 C 220 120, 170 112, 120 112 C 90 112, 60 115, 40 110 Z" 
+                                  class="fill-slate-800 hover:fill-emerald-500/20 stroke-slate-700 hover:stroke-emerald-400 stroke-2 transition-all duration-300 cursor-pointer"
+                                  onclick="selectRegion('jeju')" />
+                            
+                            <!-- 서귀포시 영역 (남쪽) -->
+                            <path id="map-seogwipo" d="M40 110 C 50 135, 90 170, 150 190 C 210 210, 290 210, 350 195 C 410 180, 450 145, 460 110 C 440 115, 410 115, 380 112 C 320 112, 280 120, 250 125 C 220 120, 170 112, 120 112 C 90 112, 60 115, 40 110 Z" 
+                                  class="fill-slate-800/80 hover:fill-teal-500/20 stroke-slate-700 hover:stroke-teal-400 stroke-2 transition-all duration-300 cursor-pointer"
+                                  onclick="selectRegion('seogwipo')" />
+
+                            <!-- 한라산 핵심 정상 표시 -->
+                            <polygon points="250,115 244,127 256,127" fill="#10b981" class="animate-pulse" />
+
+                            <!-- 텍스트 레이블 -->
+                            <text x="240" y="85" fill="#f8fafc" class="text-xs font-bold pointer-events-none select-none">제주시</text>
+                            <text x="232" y="165" fill="#f8fafc" class="text-xs font-bold pointer-events-none select-none">서귀포시</text>
+                            <text x="235" y="138" fill="#10b981" class="text-[9px] font-semibold pointer-events-none select-none">한라산</text>
+                        </svg>
+                    </div>
+
+                    <div class="text-center text-xs text-slate-500">
+                        * 지도의 상단(제주시) 혹은 하단(서귀포시) 구역을 직접 눌러보세요.
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 세부 정보 패널 -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-6">
+                            <span id="region-icon" class="text-3xl">🍊</span>
+                            <div>
+                                <h4 id="region-title" class="text-2xl font-black text-slate-100">제주특별자치도</h4>
+                                <p id="region-subtitle" class="text-xs text-slate-400">종합 인구 데이터 요약</p>
+                            </div>
+                        </div>
+
+                        <!-- 핵심 인구 수치 그리드 -->
+                        <div class="space-y-4 mb-8">
+                            <div class="flex justify-between items-center py-2.5 border-b border-slate-800">
+                                <span class="text-xs text-slate-400">총 인구수</span>
+                                <span id="region-pop" class="text-base font-bold text-emerald-400">694,800 명</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2.5 border-b border-slate-800">
+                                <span class="text-xs text-slate-400">남성 수 / 여성 수</span>
+                                <span id="region-gender" class="text-sm font-semibold text-slate-200">347,200 명 / 347,600 명</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2.5 border-b border-slate-800">
+                                <span class="text-xs text-slate-400">전체 세대수</span>
+                                <span id="region-household" class="text-sm font-semibold text-slate-200">314,500 세대</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2.5 border-b border-slate-800">
+                                <span class="text-xs text-slate-400">대표 인구 밀집 행정구역</span>
+                                <span id="region-top" class="text-sm font-bold text-teal-400">노형동, 연동, 이도2동</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 통계 참고 메시지 -->
+                    <div class="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl">
+                        <span class="text-[11px] text-slate-400 font-bold block mb-1">💡 지역별 특징 정보</span>
+                        <p id="region-desc" class="text-xs text-slate-400 leading-relaxed">
+                            제주도는 북부의 제주시 일대에 전체 인구의 약 72%가 살고 있는 도시 밀집형 구조를 보이고 있습니다. 남부 서귀포시는 우수한 농업 환경과 더불어 대정읍 등 교육 특화 인프라를 확장해 가고 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 연령별 인구 및 성비 통계 섹션 (Chart.js 적용) -->
+    <section id="chart-section" class="py-24 max-w-7xl mx-auto px-6">
+        <div class="text-center max-w-3xl mx-auto mb-20">
+            <h2 class="text-xs font-semibold tracking-widest text-emerald-400 uppercase mb-2">DEMOGRAPHIC ANALYSIS</h2>
+            <h3 class="text-3xl sm:text-5xl font-black text-slate-100">연령별 및 시도별 인구 비교</h3>
+            <p class="text-slate-400 mt-3 text-sm sm:text-base">
+                제주의 연령 분포는 유소년기, 경제활동인구, 초고령사회의 단면을 고스란히 가지고 있습니다. 최신 데이터 분석표를 확인하십시오.
+            </p>
+            <div class="h-1 w-12 bg-gradient-to-r from-emerald-500 to-teal-500 mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        <!-- 차트 영역 그리드 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <!-- 연령별 연령 분포 차트 카드 -->
+            <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl flex flex-col">
+                <h4 class="text-lg font-bold text-slate-200 mb-6 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+                    제주특별자치도 연령 분포 (연령대별 %)
+                </h4>
+                <div class="flex-1 min-h-[300px] flex items-center justify-center">
+                    <canvas id="ageDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 시별 성별 구성 비 비교 차트 카드 -->
+            <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl flex flex-col">
+                <h4 class="text-lg font-bold text-slate-200 mb-6 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-400 inline-block"></span>
+                    시별 인구 분포 규모 비교
+                </h4>
+                <div class="flex-1 min-h-[300px] flex items-center justify-center">
+                    <canvas id="cityComparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 핵심 요약 정보 박스 -->
+        <div class="max-w-6xl mx-auto mt-8 bg-slate-900/40 border border-slate-800/80 p-6 rounded-3xl grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="border-l-2 border-emerald-500 pl-4">
+                <h5 class="text-xs text-slate-500 uppercase tracking-widest font-mono">고령 인구 비율 (65세 이상)</h5>
+                <p class="text-lg font-bold text-slate-200 mt-1">약 17.2 %</p>
+                <p class="text-xs text-slate-400 mt-1">제주 전역이 고령사회에 진입하여 돌봄 복지망이 중요해지고 있습니다.</p>
+            </div>
+            <div class="border-l-2 border-teal-500 pl-4">
+                <h5 class="text-xs text-slate-500 uppercase tracking-widest font-mono">가장 인구가 높은 행정동</h5>
+                <p class="text-lg font-bold text-slate-200 mt-1">제주시 노형동</p>
+                <p class="text-xs text-slate-400 mt-1">약 5만 5천명 이상 거주하여 단일 동 기준 최대 인구 규모를 자랑합니다.</p>
+            </div>
+            <div class="border-l-2 border-cyan-500 pl-4">
+                <h5 class="text-xs text-slate-500 uppercase tracking-widest font-mono">평균 가구원 수</h5>
+                <p class="text-lg font-bold text-slate-200 mt-1">약 2.2 명 / 가구</p>
+                <p class="text-xs text-slate-400 mt-1">전국적인 추세와 마찬가지로 1인 및 2인 가구 비중이 꾸준히 급상승 중입니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. 인터랙티브 미래 인구 예측 시뮬레이터 -->
+    <section id="simulator" class="py-24 bg-slate-900/30 border-y border-slate-900">
+        <div class="max-w-4xl mx-auto px-6">
+            <!-- 섹션 헤더 -->
+            <div class="text-center mb-16">
+                <h2 class="text-xs font-semibold tracking-widest text-emerald-400 uppercase mb-2">FUTURE SIMULATOR</h2>
+                <h3 class="text-3xl sm:text-5xl font-black text-slate-100">제주 미래 인구 가상 분석기</h3>
+                <p class="text-slate-400 mt-3 text-sm sm:text-base">
+                    인구 자연증감율(출생·사망 비율)과 외지 유입 전입 비율 슬라이더를 직접 조정하며 제주의 인구 변화 미래를 동적으로 관찰해보세요.
+                </p>
+                <div class="h-1 w-12 bg-gradient-to-r from-emerald-500 to-teal-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <!-- 시뮬레이션 콘솔 보드 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+                <!-- 제어 컨트롤러 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 연도 선택 슬라이더 -->
+                    <div class="space-y-3">
+                        <label class="text-sm font-bold text-slate-300 flex justify-between">
+                            <span>🎯 예측 기준 연도</span>
+                            <span id="val-year" class="text-emerald-400 font-mono font-bold text-lg">2035년</span>
+                        </label>
+                        <input type="range" id="input-year" min="2026" max="2050" value="2035" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400" oninput="updateSimulation()">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>현재 (2026년)</span>
+                            <span>2050년</span>
+                        </div>
+                    </div>
+
+                    <!-- 인구 유입량 조절 -->
+                    <div class="space-y-3">
+                        <label class="text-sm font-bold text-slate-300 flex justify-between">
+                            <span>✈️ 순유입 인구 수치 (연평균)</span>
+                            <span id="val-migration" class="text-teal-400 font-bold">+2,000 명</span>
+                        </label>
+                        <input type="range" id="input-migration" min="-10000" max="15000" step="500" value="2000" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-400" oninput="updateSimulation()">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>순감소 (-10k)</span>
+                            <span>안정유지 (0)</span>
+                            <span>급성장 (+15k)</span>
+                        </div>
+                    </div>
+
+                    <!-- 출생 자연 증감 변동성 -->
+                    <div class="space-y-3 md:col-span-2">
+                        <label class="text-sm font-bold text-slate-300 flex justify-between">
+                            <span>👶 자연 증감 비율 (출생 - 사망 연간 변화폭)</span>
+                            <span id="val-natural" class="text-cyan-400 font-bold">-0.5 %</span>
+                        </label>
+                        <input type="range" id="input-natural" min="-3.0" max="1.5" step="0.1" value="-0.5" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400" oninput="updateSimulation()">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>초고령화 위기 (-3.0%)</span>
+                            <span>현 수준 유지</span>
+                            <span>출생 증가 (+1.5%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 실시간 예측 결과 리포트 박스 -->
+                <div class="bg-slate-950 border border-slate-850 p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="space-y-2 text-center md:text-left">
+                        <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">PREDICTED RESULTS</span>
+                        <h4 class="text-xl font-bold text-slate-200">
+                            <span id="span-target-year" class="text-emerald-400 font-mono">2035년</span> 제주특별자치도 예상 총인구
+                        </h4>
+                        <p class="text-xs text-slate-400 max-w-md">
+                            현재 대외 인프라 및 자연 경관 매력도 상승세와 인구 유소년 인프라 확충에 근거한 시뮬레이션 공식 추정값입니다.
+                        </p>
+                    </div>
+                    <div class="text-center md:text-right bg-emerald-950/20 px-6 py-4 rounded-xl border border-emerald-500/10 min-w-[200px]">
+                        <span class="text-xs text-slate-400 block mb-1">예측 인구</span>
+                        <span id="calculated-pop" class="text-3xl font-black text-emerald-400 font-montserrat">707,700 명</span>
+                        <span id="pop-diff" class="text-xs block text-emerald-500 font-semibold mt-1">▲ 약 12,900명 증가</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. 인구 통계 상식 퀴즈 섹션 -->
+    <section id="quiz" class="py-24 bg-slate-950">
+        <div class="max-w-4xl mx-auto px-6">
+            <!-- 섹션 헤더 -->
+            <div class="text-center mb-16">
+                <h2 class="text-xs font-semibold tracking-widest text-emerald-400 uppercase mb-2">POPULATION QUIZ</h2>
+                <h3 class="text-3xl sm:text-4xl font-black text-slate-100">제주도 인구 골든벨 퀴즈</h3>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">제주도 행정구역과 인구에 관련된 흥미로운 퀴즈를 풀어보세요!</p>
+                <div class="h-1 w-12 bg-gradient-to-r from-emerald-500 to-teal-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <!-- 퀴즈 박스 본체 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden" id="quiz-container">
+                <!-- 상단 프로그레스 바 -->
+                <div class="w-full bg-slate-800 h-1.5 rounded-full mb-8 overflow-hidden">
+                    <div id="quiz-progress" class="bg-emerald-400 h-full w-1/3 transition-all duration-300"></div>
+                </div>
+
+                <!-- 퀴즈 문항 내용 -->
+                <div id="quiz-content" class="transition-opacity duration-300">
+                    <span id="question-number" class="text-emerald-400 font-mono font-bold text-sm tracking-widest">QUESTION 01</span>
+                    <h4 id="question-text" class="text-xl sm:text-2xl font-bold text-slate-100 mt-2 mb-8 leading-snug">
+                        제주특별자치도 산하의 '행정시'에 해당하는 행정구역은 무엇과 무엇일까요?
+                    </h4>
+
+                    <!-- 선택지 버튼 그룹 -->
+                    <div class="space-y-4" id="quiz-options">
+                        <button onclick="submitAnswer(0)" class="w-full text-left py-4 px-6 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-sm sm:text-base flex justify-between items-center group">
+                            <span>제주시 & 서귀포시</span>
+                            <span class="opacity-0 group-hover:opacity-100 text-emerald-400 transition-opacity">선택 &rarr;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 피드백 알림 오버레이 -->
+                <div id="feedback-panel" class="hidden absolute inset-0 bg-slate-900/95 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 text-center">
+                    <div id="feedback-icon" class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 text-3xl">✓</div>
+                    <h5 id="feedback-title" class="text-2xl font-bold text-slate-100">정답입니다!</h5>
+                    <p id="feedback-desc" class="text-slate-400 text-sm sm:text-base max-w-md mt-2 mb-6">피드백</p>
+                    <button onclick="nextQuestion()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20">다음 문제 &rarr;</button>
+                </div>
+
+                <!-- 최종 결과 오버레이 -->
+                <div id="result-panel" class="hidden absolute inset-0 bg-slate-900 z-10 flex flex-col items-center justify-center p-8 text-center">
+                    <div class="w-20 h-20 rounded-full bg-amber-400/10 text-amber-400 flex items-center justify-center mb-6 text-5xl">🏅</div>
+                    <h5 class="text-3xl font-black text-slate-100">퀴즈 결과</h5>
+                    <p id="result-score" class="text-emerald-400 text-lg font-bold mt-2">정답 개수: 3 / 3 (100점)</p>
+                    <p id="result-rank" class="text-slate-400 text-sm max-w-sm mt-3 mb-8">당신은 제주 인구 통계 박사입니다! 제주 지리에 아주 탁월하십니다.</p>
+                    <button onclick="restartQuiz()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl text-sm transition-all">다시 풀기</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. 푸터 -->
+    <footer class="border-t border-slate-900 py-12 text-center text-xs text-slate-500 bg-slate-950">
+        <p class="mb-4 font-montserrat tracking-wider text-slate-400">JEJU SPECIAL SELF-GOVERNING PROVINCE INFOGRAPHIC</p>
+        <p class="mb-2">&copy; 2026 제주도 통계 아카이브. Designed with Tailwind CSS.</p>
+        <p>본 사이트의 통계 데이터는 교육 및 대화형 시각화를 위해 가공된 실재 수치 기반 자료이며, 실제 세부 행정 수치와 다소의 오차가 있을 수 있습니다.</p>
+    </footer>
+
+    <!-- 자바스크립트 통계 비즈니스 로직 -->
+    <script>
+        // 1. 모바일 메뉴 토글
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // 2. 인터랙티브 지도 클릭 이벤트 정의
+        const regionData = {
+            jeju: {
+                title: "제주시 (Jeju-si)",
+                icon: "🏢",
+                pop: "502,300 명",
+                gender: "250,500 명 / 251,800 명",
+                household: "228,100 세대",
+                top: "노형동, 연동, 아라동",
+                desc: "제주시 해안도로를 비롯해 상업 시설, 고층 아파트 단지 및 행정기관이 집중된 제주의 행정·상권 중심지입니다. 한라산 북쪽에 해당하는 대부분의 대규모 거주지가 여기에 해당합니다."
+            },
+            seogwipo: {
+                title: "서귀포시 (Seogwipo-si)",
+                icon: "🌊",
+                pop: "192,500 명",
+                gender: "96,700 명 / 95,800 명",
+                household: "86,400 세대",
+                top: "대정읍, 동홍동, 남원읍",
+                desc: "기후가 온화하며 대정읍 영어교육도시를 비롯하여 중문관광단지와 같은 풍부한 여가 휴양 자원을 소유하고 있습니다. 1차 농업 및 하이 테크 농촌 경제 활성화가 우수합니다."
+            }
+        };
+
+        function selectRegion(regionId) {
+            const data = regionData[regionId];
+            if (!data) return;
+
+            // 지도 시각적 활성화 강조 변경
+            const jejuPath = document.getElementById('map-jeju');
+            const seogwipoPath = document.getElementById('map-seogwipo');
+
+            if (regionId === 'jeju') {
+                jejuPath.classList.add('fill-emerald-500/30', 'stroke-emerald-400');
+                seogwipoPath.classList.remove('fill-teal-500/30', 'stroke-teal-400');
+            } else {
+                seogwipoPath.classList.add('fill-teal-500/30', 'stroke-teal-400');
+                jejuPath.classList.remove('fill-emerald-500/30', 'stroke-emerald-400');
+            }
+
+            // 오른쪽 텍스트 카드 동적 업데이트
+            document.getElementById('region-icon').innerText = data.icon;
+            document.getElementById('region-title').innerText = data.title;
+            document.getElementById('region-subtitle').innerText = "행정시 상세 인구 데이터 현황";
+            document.getElementById('region-pop').innerText = data.pop;
+            document.getElementById('region-gender').innerText = data.gender;
+            document.getElementById('region-household').innerText = data.household;
+            document.getElementById('region-top').innerText = data.top;
+            document.getElementById('region-desc').innerText = data.desc;
+        }
+
+        // 3. 인구 예측 시뮬레이터 수식 연산 및 업데이트
+        const basePopulation = 694800; // 2026년 기준 베이스
+        const baseYear = 2026;
+
+        function updateSimulation() {
+            const year = parseInt(document.getElementById('input-year').value);
+            const migration = parseInt(document.getElementById('input-migration').value);
+            const natural = parseFloat(document.getElementById('input-natural').value);
+
+            // 라벨 업데이트
+            document.getElementById('val-year').innerText = `${year}년`;
+            document.getElementById('val-migration').innerText = migration >= 0 ? `+${migration.toLocaleString()} 명` : `${migration.toLocaleString()} 명`;
+            document.getElementById('val-natural').innerText = natural >= 0 ? `+${natural}%` : `${natural}%`;
+
+            // 예측 알고리즘 계산
+            const diffYears = year - baseYear;
+            let currentPop = basePopulation;
+
+            for (let i = 0; i < diffYears; i++) {
+                // 자연 증감 적용 + 유입량 합산
+                currentPop = currentPop * (1 + (natural / 100)) + migration;
+            }
+
+            const finalPop = Math.round(currentPop);
+            const populationDifference = finalPop - basePopulation;
+
+            // 결과 화면 업데이트
+            document.getElementById('span-target-year').innerText = `${year}년`;
+            document.getElementById('calculated-pop').innerText = `${finalPop.toLocaleString()} 명`;
+
+            const diffSpan = document.getElementById('pop-diff');
+            if (populationDifference >= 0) {
+                diffSpan.innerText = `▲ 약 ${populationDifference.toLocaleString()}명 증가`;
+                diffSpan.className = "text-xs block text-emerald-500 font-semibold mt-1";
+            } else {
+                diffSpan.innerText = `▼ 약 ${Math.abs(populationDifference).toLocaleString()}명 감소`;
+                diffSpan.className = "text-xs block text-rose-500 font-semibold mt-1";
+            }
+        }
+
+        // 초기 한 번 업데이트
+        updateSimulation();
+
+        // 4. 차트 설정 (Chart.js 라이브러리 사용)
+        const ctxAge = document.getElementById('ageDistributionChart').getContext('2d');
+        const ageChart = new Chart(ctxAge, {
+            type: 'doughnut',
+            data: {
+                labels: ['유소년 인구 (0~14세)', '생산가능 인구 (15~64세)', '고령 인구 (65세 이상)'],
+                datasets: [{
+                    data: [12.8, 70.0, 17.2],
+                    backgroundColor: [
+                        '#10b981', // emerald
+                        '#06b6d4', // cyan
+                        '#f59e0b'  // amber
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#0f172a'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#cbd5e1',
+                            font: { size: 12 }
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctxCity = document.getElementById('cityComparisonChart').getContext('2d');
+        const cityChart = new Chart(ctxCity, {
+            type: 'bar',
+            data: {
+                labels: ['제주시', '서귀포시'],
+                datasets: [
+                    {
+                        label: '남성 인구 (명)',
+                        data: [250500, 96700],
+                        backgroundColor: '#0284c7', // 파랑계열
+                        borderWidth: 0,
+                        borderRadius: 6
+                    },
+                    {
+                        label: '여성 인구 (명)',
+                        data: [251800, 95800],
+                        backgroundColor: '#ec4899', // 핑크계열
+                        borderWidth: 0,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#cbd5e1',
+                            font: { size: 12 }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // 5. 퀴즈 엔진 구현
+        const quizData = [
+            {
+                q: "제주특별자치도 산하의 '행정시'에 해당하는 행정구역은 무엇과 무엇일까요?",
+                options: ["제주시 & 서귀포시", "북제주군 & 남제주군", "한라시 & 한라구"],
+                correct: 0,
+                desc: "제주도는 과거의 제주시, 서귀포시, 북제주군, 남제주군 형태에서 단일 광역형 행정시(제주시, 서귀포시) 구조로 효율 개편되었습니다."
+            },
+            {
+                q: "제주도 전체를 기준으로 인구 규모가 약 5만 5천 명 이상으로 규모가 가장 거대한 행정동은 어디일까요?",
+                options: ["아라동", "연동", "노형동"],
+                correct: 2,
+                desc: "노형동은 대단지 주거공간과 우수한 교육환경이 완비되어 도내 최대 밀집 인구수를 보유하고 있습니다."
+            },
+            {
+                q: "제주의 대표적 지리적 이점을 이용해 대정읍 일대에 대규모로 유치하여 인구 증가에 긍정적인 파급력을 낸 시설은 무엇입니까?",
+                options: ["제주영어교육도시 (국제학교단지)", "중문 복합 물류 클러스터", "제주 신재생 수소 발전소"],
+                correct: 0,
+                desc: "해외 어학 연수 대체지로 널리 인정받는 국제학교 단지가 대정읍에 입지하여 전입 인구 확대에 매우 긍정적 기여를 해왔습니다."
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            if (currentQuizIndex >= quizData.length) {
+                showResult();
+                return;
+            }
+
+            const quiz = quizData[currentQuizIndex];
+            document.getElementById('question-number').innerText = `QUESTION 0${currentQuizIndex + 1}`;
+            document.getElementById('question-text').innerText = quiz.q;
+
+            // 프로그레스 바 비율 설정
+            const progressPercent = ((currentQuizIndex + 1) / quizData.length) * 100;
+            document.getElementById('quiz-progress').style.width = `${progressPercent}%`;
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+            
+            quiz.options.forEach((opt, idx) => {
+                optionsContainer.innerHTML += `
+                    <button onclick="submitAnswer(${idx})" class="w-full text-left py-4 px-6 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-sm sm:text-base flex justify-between items-center group">
+                        <span>${opt}</span>
+                        <span class="opacity-0 group-hover:opacity-100 text-emerald-400 transition-opacity">선택 &rarr;</span>
+                    </button>
+                `;
+            });
+        }
+
+        function submitAnswer(selectedIndex) {
+            const quiz = quizData[currentQuizIndex];
+            const feedbackPanel = document.getElementById('feedback-panel');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackDesc = document.getElementById('feedback-desc');
+
+            if (selectedIndex === quiz.correct) {
+                score++;
+                feedbackIcon.innerText = "✓";
+                feedbackIcon.className = "w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 text-3xl";
+                feedbackTitle.innerText = "정답입니다!";
+            } else {
+                feedbackIcon.innerText = "✗";
+                feedbackIcon.className = "w-16 h-16 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mb-4 text-3xl";
+                feedbackTitle.innerText = "아쉽게도 틀렸습니다.";
+            }
+
+            feedbackDesc.innerText = quiz.desc;
+            feedbackPanel.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            document.getElementById('feedback-panel').classList.add('hidden');
+            currentQuizIndex++;
+            loadQuiz();
+        }
+
+        function showResult() {
+            const resultPanel = document.getElementById('result-panel');
+            const scoreText = document.getElementById('result-score');
+            const rankText = document.getElementById('result-rank');
+
+            scoreText.innerText = `정답 개수: ${score} / ${quizData.length} (${Math.round((score / quizData.length) * 100)}점)`;
+            
+            if (score === 3) {
+                rankText.innerText = "제주도 지형 및 행정 지표에 대한 상식이 아주 고수입니다! 제주에 거주하거나 아는 분보다 깊이 있는 지식을 소유하셨습니다.";
+            } else if (score >= 1) {
+                rankText.innerText = "제주 통계에 대한 기본적인 지식과 지리적 흐름을 꽤 우수하게 이해하고 계십니다.";
+            } else {
+                rankText.innerText = "본 사이트 대시보드 인구 요약을 자세히 읽어보신 후 다시 기회를 두드려 보세요!";
+            }
+
+            resultPanel.classList.remove('hidden');
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('result-panel').classList.add('hidden');
+            loadQuiz();
+        }
+
+        // 퀴즈 최초 구동
+        loadQuiz();
+    </script>
+</body>
+</html>
